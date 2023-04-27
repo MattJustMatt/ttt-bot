@@ -35,17 +35,16 @@ type Move = {
   squareId: number;
 };
 
-const socket: Socket<ServerToClientEvents, ClientToServerEvents> = io("wss://staging.tictacyo.live");
 
 let currentGame: Game;
 let timeOfLastMove = new Date();
 
 // HotSalsa has an account with Xs, BelleRocks99 is Os
-const botUsername: "HotSalsa22" | "BelleRocks99" | any = process.env.gamer;
+const botUsername = process.env.gamer as "HotSalsa22" | "BelleRocks99";
 console.log("Username " + process.env.gamer);
 let playingFor: BoardPiece = botUsername === "HotSalsa22" ? BoardPiece.X : BoardPiece.O;
 
-socket.emit('requestUsername', botUsername, () => {});
+const socket: Socket<ServerToClientEvents, ClientToServerEvents> = io("wss://staging.tictacyo.live", { auth: { username: botUsername }});
 
 socket.on('playerInformation', (uuid, username, playingFor) => {
   playingFor = playingFor;
