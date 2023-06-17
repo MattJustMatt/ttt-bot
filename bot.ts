@@ -37,6 +37,7 @@ type Move = {
 
 
 let currentGame: Game;
+let timeOfLastHumanMove = new Date();
 let timeOfLastMove = new Date();
 
 // HotSalsa has an account with Xs, BelleRocks99 is Os
@@ -162,18 +163,30 @@ setInterval(() => {
   let timeSinceLastMove = currentTime.getTime() - timeOfLastMove.getTime();
 
   if (timeSinceLastMove > 6000) {
-    console.log("Dispatched forced move");
+    console.log("No moves have been made by anyone recently. Moving");
     makeIntelligentMove();
   }
 }, 5000);
 
 socket.on('update', (gameId, boardId, squareId, updatedPiece, username) => {
-  if (username !== botUsername) {
-    timeOfLastMove = new Date();
+  if (username !== "BelleRocks99" && username !== "HotSalsa22" && updatedPiece === playingFor) {
+    timeOfLastHumanMove = new Date();
+    console.log("Real user move detected, not moving for 10s");
   }
 
+  let currentTime = new Date();
+  let timeSinceLastHumanMove = currentTime.getTime() - timeOfLastHumanMove.getTime();
+
+  if (timeSinceLastHumanMove > 10000) {
+    console.log("Last human move for player " + playingFor + " was over 10 seconds ago, moving");
+    if (updatedPiece !== playingFor) makeIntelligentMove();
+  } else {
+    console.log("Not responding to move, last human move for this player was " + timeOfLastHumanMove)
+  }
+
+  timeOfLastMove = new Date();
   currentGame.boards[boardId].positions[squareId] = updatedPiece;
-  if (updatedPiece !== playingFor) makeIntelligentMove();
+
 });
 
 socket.on('end', (gameId, boardId, winner, winningLine) => {
